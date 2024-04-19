@@ -1,0 +1,784 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "3b260d73",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:44:51.539986Z",
+     "iopub.status.busy": "2024-04-19T18:44:51.539198Z",
+     "iopub.status.idle": "2024-04-19T18:44:52.242544Z",
+     "shell.execute_reply": "2024-04-19T18:44:52.241550Z"
+    },
+    "papermill": {
+     "duration": 0.711691,
+     "end_time": "2024-04-19T18:44:52.244852",
+     "exception": false,
+     "start_time": "2024-04-19T18:44:51.533161",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/datasetu/problem 2.csv\n",
+      "/kaggle/input/datasetu/boxes.csv\n",
+      "/kaggle/input/datasetu/sample submission 2.csv\n",
+      "/kaggle/input/datasetu/purchase.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import os\n",
+    "\n",
+    "# Iterate through files in the specified directory\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "7ec30110",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:44:52.255260Z",
+     "iopub.status.busy": "2024-04-19T18:44:52.254890Z",
+     "iopub.status.idle": "2024-04-19T18:45:00.709429Z",
+     "shell.execute_reply": "2024-04-19T18:45:00.708466Z"
+    },
+    "papermill": {
+     "duration": 8.462099,
+     "end_time": "2024-04-19T18:45:00.711760",
+     "exception": false,
+     "start_time": "2024-04-19T18:44:52.249661",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Purchase File:\n",
+      "        PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0            1/2/2019  2CED678A247    12.0        1.0\n",
+      "1            1/2/2019  2BF58D91BA1    12.0        1.0\n",
+      "2            1/2/2019  2C15B86534E    99.0        1.0\n",
+      "3            1/2/2019  2C32D9A859A     6.0        1.0\n",
+      "4            1/2/2019  2C7A55404D1     4.0        1.0\n",
+      "...               ...          ...     ...        ...\n",
+      "2455859    28/10/2018  2BD992B5538    12.0        1.0\n",
+      "2455860    28/10/2018  2C97CD72233    17.0        1.0\n",
+      "2455861    28/10/2018  2C91C61D372    40.0        1.0\n",
+      "2455862    28/10/2018  2CD70CFC4E3    51.0        1.0\n",
+      "2455863    28/10/2018  2C4792A5B84     4.0        1.0\n",
+      "\n",
+      "[2455864 rows x 4 columns]\n",
+      "Boxes File:\n",
+      "        PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0            1/2/2019  2CED678A247    12.0        1.0\n",
+      "1            1/2/2019  2BF58D91BA1    12.0        1.0\n",
+      "2            1/2/2019  2C15B86534E    99.0        1.0\n",
+      "3            1/2/2019  2C32D9A859A     6.0        1.0\n",
+      "4            1/2/2019  2C7A55404D1     4.0        1.0\n",
+      "...               ...          ...     ...        ...\n",
+      "2455859    28/10/2018  2BD992B5538    12.0        1.0\n",
+      "2455860    28/10/2018  2C97CD72233    17.0        1.0\n",
+      "2455861    28/10/2018  2C91C61D372    40.0        1.0\n",
+      "2455862    28/10/2018  2CD70CFC4E3    51.0        1.0\n",
+      "2455863    28/10/2018  2C4792A5B84     4.0        1.0\n",
+      "\n",
+      "[2455864 rows x 4 columns]\n",
+      "Problem2 File:\n",
+      "        PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0            1/2/2019  2CED678A247    12.0        1.0\n",
+      "1            1/2/2019  2BF58D91BA1    12.0        1.0\n",
+      "2            1/2/2019  2C15B86534E    99.0        1.0\n",
+      "3            1/2/2019  2C32D9A859A     6.0        1.0\n",
+      "4            1/2/2019  2C7A55404D1     4.0        1.0\n",
+      "...               ...          ...     ...        ...\n",
+      "2455859    28/10/2018  2BD992B5538    12.0        1.0\n",
+      "2455860    28/10/2018  2C97CD72233    17.0        1.0\n",
+      "2455861    28/10/2018  2C91C61D372    40.0        1.0\n",
+      "2455862    28/10/2018  2CD70CFC4E3    51.0        1.0\n",
+      "2455863    28/10/2018  2C4792A5B84     4.0        1.0\n",
+      "\n",
+      "[2455864 rows x 4 columns]\n",
+      "Submission File:\n",
+      "        PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0            1/2/2019  2CED678A247    12.0        1.0\n",
+      "1            1/2/2019  2BF58D91BA1    12.0        1.0\n",
+      "2            1/2/2019  2C15B86534E    99.0        1.0\n",
+      "3            1/2/2019  2C32D9A859A     6.0        1.0\n",
+      "4            1/2/2019  2C7A55404D1     4.0        1.0\n",
+      "...               ...          ...     ...        ...\n",
+      "2455859    28/10/2018  2BD992B5538    12.0        1.0\n",
+      "2455860    28/10/2018  2C97CD72233    17.0        1.0\n",
+      "2455861    28/10/2018  2C91C61D372    40.0        1.0\n",
+      "2455862    28/10/2018  2CD70CFC4E3    51.0        1.0\n",
+      "2455863    28/10/2018  2C4792A5B84     4.0        1.0\n",
+      "\n",
+      "[2455864 rows x 4 columns]\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Read Purchase CSV file\n",
+    "purchase_df = pd.read_csv('/kaggle/input/datasetu/purchase.csv')\n",
+    "# Read Boxes CSV file\n",
+    "boxes_df = pd.read_csv('/kaggle/input/datasetu/purchase.csv')\n",
+    "# Read Problem 2 CSV file\n",
+    "problem2_df = pd.read_csv('/kaggle/input/datasetu/purchase.csv')\n",
+    "# Read Submission CSV file\n",
+    "submission_df = pd.read_csv('/kaggle/input/datasetu/purchase.csv')\n",
+    "\n",
+    "print(\"Purchase File:\")\n",
+    "print(purchase_df)\n",
+    "print(\"Boxes File:\")\n",
+    "print(boxes_df)\n",
+    "print(\"Problem2 File:\")\n",
+    "print(problem2_df)\n",
+    "print(\"Submission File:\")\n",
+    "print(submission_df)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "627063dd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:00.721766Z",
+     "iopub.status.busy": "2024-04-19T18:45:00.721465Z",
+     "iopub.status.idle": "2024-04-19T18:45:00.728952Z",
+     "shell.execute_reply": "2024-04-19T18:45:00.728061Z"
+    },
+    "papermill": {
+     "duration": 0.014937,
+     "end_time": "2024-04-19T18:45:00.731187",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:00.716250",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Purchase File Data Types:\n",
+      "PURCHASE_DATE     object\n",
+      "MAGIC_KEY         object\n",
+      "BOX_ID           float64\n",
+      "BOX_COUNT        float64\n",
+      "dtype: object\n",
+      "\n",
+      "Boxes File Data Types:\n",
+      "PURCHASE_DATE     object\n",
+      "MAGIC_KEY         object\n",
+      "BOX_ID           float64\n",
+      "BOX_COUNT        float64\n",
+      "dtype: object\n",
+      "\n",
+      "Problem 2 File Data Types:\n",
+      "PURCHASE_DATE     object\n",
+      "MAGIC_KEY         object\n",
+      "BOX_ID           float64\n",
+      "BOX_COUNT        float64\n",
+      "dtype: object\n",
+      "\n",
+      "Submission File Data Types:\n",
+      "PURCHASE_DATE     object\n",
+      "MAGIC_KEY         object\n",
+      "BOX_ID           float64\n",
+      "BOX_COUNT        float64\n",
+      "dtype: object\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Print data types for each DataFrame\n",
+    "print(\"Purchase File Data Types:\")\n",
+    "print(purchase_df.dtypes)\n",
+    "\n",
+    "print(\"\\nBoxes File Data Types:\")\n",
+    "print(boxes_df.dtypes)\n",
+    "\n",
+    "print(\"\\nProblem 2 File Data Types:\")\n",
+    "print(problem2_df.dtypes)\n",
+    "\n",
+    "print(\"\\nSubmission File Data Types:\")\n",
+    "print(submission_df.dtypes)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "62b88744",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:00.741028Z",
+     "iopub.status.busy": "2024-04-19T18:45:00.740782Z",
+     "iopub.status.idle": "2024-04-19T18:45:03.133505Z",
+     "shell.execute_reply": "2024-04-19T18:45:03.132191Z"
+    },
+    "papermill": {
+     "duration": 2.400046,
+     "end_time": "2024-04-19T18:45:03.135632",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:00.735586",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Purchase File:\n",
+      "  PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0      1/2/2019  2CED678A247    12.0        1.0\n",
+      "1      1/2/2019  2BF58D91BA1    12.0        1.0\n",
+      "2      1/2/2019  2C15B86534E    99.0        1.0\n",
+      "3      1/2/2019  2C32D9A859A     6.0        1.0\n",
+      "4      1/2/2019  2C7A55404D1     4.0        1.0\n",
+      "\n",
+      "Boxes File:\n",
+      "  PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0      1/2/2019  2CED678A247    12.0        1.0\n",
+      "1      1/2/2019  2BF58D91BA1    12.0        1.0\n",
+      "2      1/2/2019  2C15B86534E    99.0        1.0\n",
+      "3      1/2/2019  2C32D9A859A     6.0        1.0\n",
+      "4      1/2/2019  2C7A55404D1     4.0        1.0\n",
+      "\n",
+      "Problem 2 File:\n",
+      "  PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0      1/2/2019  2CED678A247    12.0        1.0\n",
+      "1      1/2/2019  2BF58D91BA1    12.0        1.0\n",
+      "2      1/2/2019  2C15B86534E    99.0        1.0\n",
+      "3      1/2/2019  2C32D9A859A     6.0        1.0\n",
+      "4      1/2/2019  2C7A55404D1     4.0        1.0\n",
+      "\n",
+      "Submission File:\n",
+      "  PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0      1/2/2019  2CED678A247    12.0        1.0\n",
+      "1      1/2/2019  2BF58D91BA1    12.0        1.0\n",
+      "2      1/2/2019  2C15B86534E    99.0        1.0\n",
+      "3      1/2/2019  2C32D9A859A     6.0        1.0\n",
+      "4      1/2/2019  2C7A55404D1     4.0        1.0\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Clean the data by dropping rows with any missing values\n",
+    "purchase_df.dropna(inplace=True)\n",
+    "boxes_df.dropna(inplace=True)\n",
+    "problem2_df.dropna(inplace=True)\n",
+    "submission_df.dropna(inplace=True)\n",
+    "\n",
+    "# Print the cleaned dataframes\n",
+    "print(\"Purchase File:\")\n",
+    "print(purchase_df.head())\n",
+    "\n",
+    "print(\"\\nBoxes File:\")\n",
+    "print(boxes_df.head())\n",
+    "\n",
+    "print(\"\\nProblem 2 File:\")\n",
+    "print(problem2_df.head())\n",
+    "\n",
+    "print(\"\\nSubmission File:\")\n",
+    "print(submission_df.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "5231acc4",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:03.145927Z",
+     "iopub.status.busy": "2024-04-19T18:45:03.145625Z",
+     "iopub.status.idle": "2024-04-19T18:45:03.410024Z",
+     "shell.execute_reply": "2024-04-19T18:45:03.409041Z"
+    },
+    "papermill": {
+     "duration": 0.272287,
+     "end_time": "2024-04-19T18:45:03.412523",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:03.140236",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Filter rows with BOX_ID values between 1 and 290\n",
+    "purchase_df = purchase_df[(purchase_df['BOX_ID'] >= 1) & (purchase_df['BOX_ID'] <= 290)]\n",
+    "boxes_df = boxes_df[(boxes_df['BOX_ID'] >= 1) & (boxes_df['BOX_ID'] <= 290)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "8104fd55",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:03.424187Z",
+     "iopub.status.busy": "2024-04-19T18:45:03.423534Z",
+     "iopub.status.idle": "2024-04-19T18:45:03.445495Z",
+     "shell.execute_reply": "2024-04-19T18:45:03.444334Z"
+    },
+    "papermill": {
+     "duration": 0.029827,
+     "end_time": "2024-04-19T18:45:03.447433",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:03.417606",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Purchase File - Detailed View:\n",
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "Index: 2455800 entries, 0 to 2455863\n",
+      "Data columns (total 4 columns):\n",
+      " #   Column         Dtype  \n",
+      "---  ------         -----  \n",
+      " 0   PURCHASE_DATE  object \n",
+      " 1   MAGIC_KEY      object \n",
+      " 2   BOX_ID         float64\n",
+      " 3   BOX_COUNT      float64\n",
+      "dtypes: float64(2), object(2)\n",
+      "memory usage: 93.7+ MB\n",
+      "None\n",
+      "\n",
+      "Boxes File - Detailed View:\n",
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "Index: 2455800 entries, 0 to 2455863\n",
+      "Data columns (total 4 columns):\n",
+      " #   Column         Dtype  \n",
+      "---  ------         -----  \n",
+      " 0   PURCHASE_DATE  object \n",
+      " 1   MAGIC_KEY      object \n",
+      " 2   BOX_ID         float64\n",
+      " 3   BOX_COUNT      float64\n",
+      "dtypes: float64(2), object(2)\n",
+      "memory usage: 93.7+ MB\n",
+      "None\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Detailed view of cleaned DataFrames\n",
+    "print(\"Purchase File - Detailed View:\")\n",
+    "print(purchase_df.info())\n",
+    "\n",
+    "print(\"\\nBoxes File - Detailed View:\")\n",
+    "print(boxes_df.info())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "66122898",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:03.457651Z",
+     "iopub.status.busy": "2024-04-19T18:45:03.457190Z",
+     "iopub.status.idle": "2024-04-19T18:45:04.575645Z",
+     "shell.execute_reply": "2024-04-19T18:45:04.574719Z"
+    },
+    "papermill": {
+     "duration": 1.125719,
+     "end_time": "2024-04-19T18:45:04.577745",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:03.452026",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Purchase File - After converting 'PURCHASE_DATE' column to datetime format:\n",
+      "  PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0    2019-02-01  2CED678A247    12.0        1.0\n",
+      "1    2019-02-01  2BF58D91BA1    12.0        1.0\n",
+      "2    2019-02-01  2C15B86534E    99.0        1.0\n",
+      "3    2019-02-01  2C32D9A859A     6.0        1.0\n",
+      "4    2019-02-01  2C7A55404D1     4.0        1.0\n",
+      "Boxes File - After converting 'PURCHASE_DATE' column to datetime format:\n",
+      "  PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0    2019-02-01  2CED678A247    12.0        1.0\n",
+      "1    2019-02-01  2BF58D91BA1    12.0        1.0\n",
+      "2    2019-02-01  2C15B86534E    99.0        1.0\n",
+      "3    2019-02-01  2C32D9A859A     6.0        1.0\n",
+      "4    2019-02-01  2C7A55404D1     4.0        1.0\n",
+      "Problem 2 File - After converting 'PURCHASE_DATE' column to datetime format:\n",
+      "  PURCHASE_DATE    MAGIC_KEY  BOX_ID  BOX_COUNT\n",
+      "0    2019-02-01  2CED678A247    12.0        1.0\n",
+      "1    2019-02-01  2BF58D91BA1    12.0        1.0\n",
+      "2    2019-02-01  2C15B86534E    99.0        1.0\n",
+      "3    2019-02-01  2C32D9A859A     6.0        1.0\n",
+      "4    2019-02-01  2C7A55404D1     4.0        1.0\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Convert the 'PURCHASE_DATE' column to datetime format\n",
+    "purchase_df['PURCHASE_DATE'] = pd.to_datetime(purchase_df['PURCHASE_DATE'], format='%d/%m/%Y')\n",
+    "boxes_df['PURCHASE_DATE'] = pd.to_datetime(boxes_df['PURCHASE_DATE'], format='%d/%m/%Y')\n",
+    "problem2_df['PURCHASE_DATE'] = pd.to_datetime(problem2_df['PURCHASE_DATE'], format='%d/%m/%Y')\n",
+    "\n",
+    "# Print the first few rows of the DataFrame to verify the conversion\n",
+    "print(\"Purchase File - After converting 'PURCHASE_DATE' column to datetime format:\")\n",
+    "print(purchase_df.head())\n",
+    "print(\"Boxes File - After converting 'PURCHASE_DATE' column to datetime format:\")\n",
+    "print(boxes_df.head())\n",
+    "print(\"Problem 2 File - After converting 'PURCHASE_DATE' column to datetime format:\")\n",
+    "print(problem2_df.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "f82b0c01",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:04.588911Z",
+     "iopub.status.busy": "2024-04-19T18:45:04.588202Z",
+     "iopub.status.idle": "2024-04-19T18:45:04.595989Z",
+     "shell.execute_reply": "2024-04-19T18:45:04.595154Z"
+    },
+    "papermill": {
+     "duration": 0.015341,
+     "end_time": "2024-04-19T18:45:04.597952",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:04.582611",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Purchase File Data Types:\n",
+      "PURCHASE_DATE    datetime64[ns]\n",
+      "MAGIC_KEY                object\n",
+      "BOX_ID                  float64\n",
+      "BOX_COUNT               float64\n",
+      "dtype: object\n",
+      "\n",
+      "Boxes File Data Types:\n",
+      "PURCHASE_DATE    datetime64[ns]\n",
+      "MAGIC_KEY                object\n",
+      "BOX_ID                  float64\n",
+      "BOX_COUNT               float64\n",
+      "dtype: object\n",
+      "\n",
+      "Problem 2 File Data Types:\n",
+      "PURCHASE_DATE    datetime64[ns]\n",
+      "MAGIC_KEY                object\n",
+      "BOX_ID                  float64\n",
+      "BOX_COUNT               float64\n",
+      "dtype: object\n",
+      "\n",
+      "Submission File Data Types:\n",
+      "PURCHASE_DATE     object\n",
+      "MAGIC_KEY         object\n",
+      "BOX_ID           float64\n",
+      "BOX_COUNT        float64\n",
+      "dtype: object\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Print data types for each DataFrame\n",
+    "print(\"Purchase File Data Types:\")\n",
+    "print(purchase_df.dtypes)\n",
+    "\n",
+    "print(\"\\nBoxes File Data Types:\")\n",
+    "print(boxes_df.dtypes)\n",
+    "\n",
+    "print(\"\\nProblem 2 File Data Types:\")\n",
+    "print(problem2_df.dtypes)\n",
+    "\n",
+    "print(\"\\nSubmission File Data Types:\")\n",
+    "print(submission_df.dtypes)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "2add4c00",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:04.608930Z",
+     "iopub.status.busy": "2024-04-19T18:45:04.608408Z",
+     "iopub.status.idle": "2024-04-19T18:45:10.238376Z",
+     "shell.execute_reply": "2024-04-19T18:45:10.237294Z"
+    },
+    "papermill": {
+     "duration": 5.637752,
+     "end_time": "2024-04-19T18:45:10.240532",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:04.602780",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Number of entries in the final DataFrame: 4911600\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Drop duplicate rows based on the 'MAGIC_KEY' column in 'boxes_df'\n",
+    "boxes_df = boxes_df.drop_duplicates(subset='MAGIC_KEY')\n",
+    "\n",
+    "# Drop duplicate rows based on the 'MAGIC_KEY' column in 'purchase_df'\n",
+    "purchase_df = purchase_df.drop_duplicates(subset='MAGIC_KEY')\n",
+    "\n",
+    "# Merge 'boxes_df' with 'problem2_df' using an inner join\n",
+    "merged_boxes_df = pd.merge(boxes_df, problem2_df, on='MAGIC_KEY', how='inner')\n",
+    "\n",
+    "# Merge 'purchase_df' with 'problem2_df' using an inner join\n",
+    "merged_purchase_df = pd.merge(purchase_df, problem2_df, on='MAGIC_KEY', how='inner')\n",
+    "\n",
+    "# Concatenate the merged DataFrames\n",
+    "final_df = pd.concat([merged_boxes_df, merged_purchase_df])\n",
+    "\n",
+    "# Print the number of entries in the final DataFrame\n",
+    "print(\"Number of entries in the final DataFrame:\", final_df.shape[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "a5dc83d3",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:10.252869Z",
+     "iopub.status.busy": "2024-04-19T18:45:10.252194Z",
+     "iopub.status.idle": "2024-04-19T18:45:13.861336Z",
+     "shell.execute_reply": "2024-04-19T18:45:13.860287Z"
+    },
+    "papermill": {
+     "duration": 3.6175,
+     "end_time": "2024-04-19T18:45:13.863407",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:10.245907",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Number of duplicate rows before removal: 2455877\n",
+      "Number of entries in final_df after removing duplicates: 2455723\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Check for duplicates in final_df\n",
+    "print(\"Number of duplicate rows before removal:\", final_df.duplicated().sum())\n",
+    "\n",
+    "# Remove duplicates from final_df\n",
+    "final_df = final_df.drop_duplicates()\n",
+    "\n",
+    "# Print the number of entries in the DataFrame after removing duplicates\n",
+    "print(\"Number of entries in final_df after removing duplicates:\", final_df.shape[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "9416aec9",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:13.874899Z",
+     "iopub.status.busy": "2024-04-19T18:45:13.874606Z",
+     "iopub.status.idle": "2024-04-19T18:45:13.889771Z",
+     "shell.execute_reply": "2024-04-19T18:45:13.888503Z"
+    },
+    "papermill": {
+     "duration": 0.02305,
+     "end_time": "2024-04-19T18:45:13.891708",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:13.868658",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "        PURCHASE_DATE_x    MAGIC_KEY  BOX_ID_x  BOX_COUNT_x PURCHASE_DATE_y  \\\n",
+      "0            2019-02-01  2CED678A247      12.0          1.0      2019-02-01   \n",
+      "1            2019-02-01  2BF58D91BA1      12.0          1.0      2019-02-01   \n",
+      "2            2019-02-01  2C15B86534E      99.0          1.0      2019-02-01   \n",
+      "3            2019-02-01  2C15B86534E      99.0          1.0      2018-12-20   \n",
+      "4            2019-02-01  2C32D9A859A       6.0          1.0      2019-02-01   \n",
+      "...                 ...          ...       ...          ...             ...   \n",
+      "2455795      2018-10-28  2BE0FCC2107      12.0          1.0      2018-10-28   \n",
+      "2455796      2018-10-28  2BD992B5538      12.0          1.0      2018-10-28   \n",
+      "2455797      2018-10-28  2C97CD72233      17.0          1.0      2018-10-28   \n",
+      "2455798      2018-10-28  2C91C61D372      40.0          1.0      2018-10-28   \n",
+      "2455799      2018-10-28  2C4792A5B84       4.0          1.0      2018-10-28   \n",
+      "\n",
+      "         BOX_ID_y  BOX_COUNT_y  \n",
+      "0            12.0          1.0  \n",
+      "1            12.0          1.0  \n",
+      "2            99.0          1.0  \n",
+      "3            78.0          1.0  \n",
+      "4             6.0          1.0  \n",
+      "...           ...          ...  \n",
+      "2455795      12.0          1.0  \n",
+      "2455796      12.0          1.0  \n",
+      "2455797      17.0          1.0  \n",
+      "2455798      40.0          1.0  \n",
+      "2455799       4.0          1.0  \n",
+      "\n",
+      "[2455723 rows x 7 columns]\n",
+      "\n",
+      "\n",
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "Index: 2455723 entries, 0 to 2455799\n",
+      "Data columns (total 7 columns):\n",
+      " #   Column           Dtype         \n",
+      "---  ------           -----         \n",
+      " 0   PURCHASE_DATE_x  datetime64[ns]\n",
+      " 1   MAGIC_KEY        object        \n",
+      " 2   BOX_ID_x         float64       \n",
+      " 3   BOX_COUNT_x      float64       \n",
+      " 4   PURCHASE_DATE_y  datetime64[ns]\n",
+      " 5   BOX_ID_y         float64       \n",
+      " 6   BOX_COUNT_y      float64       \n",
+      "dtypes: datetime64[ns](2), float64(4), object(1)\n",
+      "memory usage: 149.9+ MB\n",
+      "None\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(final_df)\n",
+    "print(\"\\n\")\n",
+    "print(final_df.info())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "5b2c5db5",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-19T18:45:13.903214Z",
+     "iopub.status.busy": "2024-04-19T18:45:13.902585Z",
+     "iopub.status.idle": "2024-04-19T18:45:31.633853Z",
+     "shell.execute_reply": "2024-04-19T18:45:31.632858Z"
+    },
+    "papermill": {
+     "duration": 17.739488,
+     "end_time": "2024-04-19T18:45:31.636274",
+     "exception": false,
+     "start_time": "2024-04-19T18:45:13.896786",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "final_data.csv has been saved successfully.\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Save final_df to final_data.csv\n",
+    "final_df.to_csv('final_data.csv', index=False)\n",
+    "\n",
+    "print(\"final_data.csv has been saved successfully.\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "gpu",
+   "dataSources": [
+    {
+     "datasetId": 4833348,
+     "sourceId": 8167710,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30699,
+   "isGpuEnabled": true,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 43.426413,
+   "end_time": "2024-04-19T18:45:32.262137",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-04-19T18:44:48.835724",
+   "version": "2.5.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
